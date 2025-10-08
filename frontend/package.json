@@ -1,0 +1,31 @@
+{
+  "name": "social-media-lead-generator-frontend",
+  "version": "1.0.0",
+  "description": "Frontend dashboard for Social Media Lead Generator with AI integration",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "start": "python -m http.server 3000",
+    "build": "echo 'Static build - no build process needed'",
+    "serve": "python -m http.server 3000"
+  },
+  "keywords": [
+    "social-media",
+    "lead-generation",
+    "ai",
+    "gemini",
+    "real-estate",
+    "crm"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/social-media-lead-generator.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

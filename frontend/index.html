@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Lead Generator Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div x-data="leadGeneratorApp()" x-init="init()">
+        <!-- Header -->
+        <header class="gradient-bg text-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-robot text-3xl mr-3"></i>
+                        <div>
+                            <h1 class="text-2xl font-bold">Social Media Lead Generator</h1>
+                            <p class="text-blue-100">AI-Powered Real Estate Lead Generation</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-sm text-blue-100">API Status</div>
+                            <div class="flex items-center">
+                                <div :class="apiStatus.connected ? 'bg-green-400' : 'bg-red-400'" 
+                                     class="w-3 h-3 rounded-full mr-2"></div>
+                                <span x-text="apiStatus.connected ? 'Connected' : 'Disconnected'"></span>
+                            </div>
+                        </div>
+                        <button @click="testConnection()" 
+                                class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                            <i class="fas fa-sync-alt mr-2"></i>Test Connection
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Leads</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="stats.totalLeads"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Instagram</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="stats.instagramLeads"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <i class="fab fa-facebook text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Facebook</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="stats.facebookLeads"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-100 text-red-600">
+                            <i class="fab fa-youtube text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">YouTube</p>
+                            <p class="text-2xl font-bold text-gray-900" x-text="stats.youtubeLeads"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-cogs mr-2"></i>Lead Generation Control Panel
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Scraping Configuration -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Scraping Configuration</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Hashtags (Instagram)</label>
+                                <input x-model="config.hashtags" 
+                                       type="text" 
+                                       placeholder="gurgaonproperty, realestate, property, m3mheights, m3mheights65, gurugram65, m3m65"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Facebook Groups</label>
+                                <input x-model="config.facebookGroups" 
+                                       type="text" 
+                                       placeholder="gurgaonproperty, realestate"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">YouTube Video IDs</label>
+                                <input x-model="config.youtubeVideos" 
+                                       type="text" 
+                                       placeholder="video_id_1, video_id_2"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scraping Actions -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h3>
+                        
+                        <div class="space-y-3">
+                            <button @click="scrapeInstagram()" 
+                                    :disabled="isScraping"
+                                    :class="isScraping ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'"
+                                    class="w-full text-white px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center">
+                                <i :class="isScraping ? 'fas fa-spinner fa-spin' : 'fab fa-instagram'" class="mr-2"></i>
+                                <span x-text="isScraping ? 'Scraping...' : 'Scrape Instagram'"></span>
+                            </button>
+                            
+                            <button @click="scrapeFacebook()" 
+                                    :disabled="isScraping"
+                                    :class="isScraping ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+                                    class="w-full text-white px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center">
+                                <i :class="isScraping ? 'fas fa-spinner fa-spin' : 'fab fa-facebook'" class="mr-2"></i>
+                                <span x-text="isScraping ? 'Scraping...' : 'Scrape Facebook'"></span>
+                            </button>
+                            
+                            <button @click="scrapeYouTube()" 
+                                    :disabled="isScraping"
+                                    :class="isScraping ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'"
+                                    class="w-full text-white px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center">
+                                <i :class="isScraping ? 'fas fa-spinner fa-spin' : 'fab fa-youtube'" class="mr-2"></i>
+                                <span x-text="isScraping ? 'Scraping...' : 'Scrape YouTube'"></span>
+                            </button>
+                            
+                            <button @click="scrapeAll()" 
+                                    :disabled="isScraping"
+                                    :class="isScraping ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'"
+                                    class="w-full text-white px-4 py-3 rounded-lg font-medium transition-all flex items-center justify-center">
+                                <i :class="isScraping ? 'fas fa-spinner fa-spin' : 'fas fa-globe'" class="mr-2"></i>
+                                <span x-text="isScraping ? 'Scraping All...' : 'Scrape All Platforms'"></span>
+                            </button>
+                        </div>
+                        
+                        <!-- Auto Scanning Controls -->
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">⏰ Automatic Scanning</h4>
+                            <div class="space-y-2">
+                                <button @click="startAutoScanning()" 
+                                        :disabled="autoScanning.isRunning"
+                                        :class="autoScanning.isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'"
+                                        class="w-full text-white px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center">
+                                    <i :class="autoScanning.isRunning ? 'fas fa-spinner fa-spin' : 'fas fa-play'" class="mr-2"></i>
+                                    <span x-text="autoScanning.isRunning ? 'Auto Scanning...' : 'Start Auto Scan'"></span>
+                                </button>
+                                
+                                <button @click="stopAutoScanning()" 
+                                        :disabled="!autoScanning.isRunning"
+                                        :class="!autoScanning.isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'"
+                                        class="w-full text-white px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center">
+                                    <i class="fas fa-stop mr-2"></i>
+                                    Stop Auto Scan
+                                </button>
+                                
+                                <div class="text-xs text-gray-500 text-center" x-show="autoScanning.isRunning">
+                                    🔄 Scanning every <span x-text="autoScanning.interval"></span> minutes
+                                    <br>
+                                    <span x-text="autoScanning.nextScan"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div x-show="leads.length > 0" class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">
+                        <i class="fas fa-list mr-2"></i>Generated Leads (<span x-text="leads.length"></span>)
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button @click="exportLeads()" 
+                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                        <button @click="sendToCRM()" 
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-all">
+                            <i class="fas fa-upload mr-2"></i>Send to CRM
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Leads Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requirement</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-for="lead in leads" :key="lead.id">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900" x-text="lead.name || 'Unknown'"></div>
+                                        <div class="text-sm text-gray-500" x-text="lead.username || ''"></div>
+                                        <div x-show="lead.post_url" class="mt-1">
+                                            <a :href="lead.post_url" target="_blank" 
+                                               class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                                <i class="fas fa-external-link-alt mr-1"></i>View Post
+                                            </a>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" x-text="lead.phone || 'No phone'"></div>
+                                        <div class="text-sm text-gray-500" x-text="lead.email || 'No email'"></div>
+                                        <div class="text-xs text-blue-600" x-text="lead.whatsapp ? 'WhatsApp: ' + lead.whatsapp : ''"></div>
+                                        <div class="text-xs text-purple-600" x-text="lead.social_handle ? 'Handle: ' + lead.social_handle : ''"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" x-text="lead.requirement || 'Not specified'"></div>
+                                        <div class="text-sm text-gray-500" x-text="lead.budget || 'No budget'"></div>
+                                        <div class="text-xs text-green-600" x-text="lead.buying_intent ? 'Intent: ' + lead.buying_intent : ''"></div>
+                                        <div class="text-xs text-orange-600" x-text="lead.timeline ? 'Timeline: ' + lead.timeline : ''"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" x-text="lead.location || 'Not specified'"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span :class="getSourceColor(lead.source)" 
+                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                                            <i :class="getSourceIcon(lead.source)" class="mr-1"></i>
+                                            <span x-text="lead.source"></span>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="text-sm font-medium text-gray-900" x-text="lead.lead_score || 5"></div>
+                                            <div class="ml-2">
+                                                <div class="w-16 bg-gray-200 rounded-full h-2">
+                                                    <div :class="getScoreColor(lead.lead_score)" 
+                                                         :style="`width: ${(lead.lead_score || 5) * 10}%`"
+                                                         class="h-2 rounded-full"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button @click="viewLead(lead)" 
+                                                class="text-blue-600 hover:text-blue-900 mr-2" 
+                                                title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button @click="analyzeLead(lead)" 
+                                                class="text-green-600 hover:text-green-900 mr-2"
+                                                title="AI Analysis">
+                                            <i class="fas fa-brain"></i>
+                                        </button>
+                                        <button x-show="lead.post_url" 
+                                                @click="messageUser(lead)" 
+                                                class="text-purple-600 hover:text-purple-900"
+                                                title="Message User">
+                                            <i class="fas fa-comment-dots"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- No Leads Message -->
+            <div x-show="leads.length === 0 && !isScraping" class="text-center py-12">
+                <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No leads found</h3>
+                <p class="text-gray-500">Start scraping to generate leads from social media platforms.</p>
+            </div>
+
+            <!-- Loading State -->
+            <div x-show="isScraping" class="text-center py-12">
+                <div class="pulse-animation">
+                    <i class="fas fa-robot text-6xl text-blue-500 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">AI is working...</h3>
+                    <p class="text-gray-500">Scraping social media and analyzing leads with AI</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Lead Detail Modal -->
+        <div x-show="selectedLead" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="selectedLead = null"></div>
+                
+                <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Lead Details</h3>
+                        <div class="space-y-3" x-show="selectedLead">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Name</label>
+                                <p class="mt-1 text-sm text-gray-900" x-text="selectedLead?.name || 'Unknown'"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Contact</label>
+                                <p class="mt-1 text-sm text-gray-900">
+                                    Phone: <span x-text="selectedLead?.phone || 'Not provided'"></span><br>
+                                    Email: <span x-text="selectedLead?.email || 'Not provided'"></span>
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Requirement</label>
+                                <p class="mt-1 text-sm text-gray-900" x-text="selectedLead?.requirement || 'Not specified'"></p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Original Content</label>
+                                <p class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded" x-text="selectedLead?.original_content || 'No content'"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button @click="selectedLead = null" 
+                                class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div x-show="notification.show" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="transform translate-x-full"
+             x-transition:enter-end="transform translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="transform translate-x-0"
+             x-transition:leave-end="transform translate-x-full"
+             class="fixed top-4 right-4 z-50 max-w-sm">
+            <div :class="notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'" 
+                 class="text-white px-6 py-4 rounded-lg shadow-lg">
+                <div class="flex items-center">
+                    <i :class="notification.type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'" class="mr-2"></i>
+                    <span x-text="notification.message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function leadGeneratorApp() {
+            return {
+                // State
+                apiStatus: {
+                    connected: false,
+                    message: 'Checking connection...'
+                },
+                isScraping: false,
+                autoScanning: {
+                    isRunning: false,
+                    interval: 10,
+                    nextScan: null
+                },
+                leads: [],
+                selectedLead: null,
+                stats: {
+                    totalLeads: 0,
+                    instagramLeads: 0,
+                    facebookLeads: 0,
+                    youtubeLeads: 0
+                },
+                config: {
+                    hashtags: 'gurgaonproperty, realestate, property, m3mheights, m3mheights65, gurugram65, m3m65',
+                    facebookGroups: 'gurgaonproperty, realestate, m3mheights, gurugram65, m3m65',
+                    youtubeVideos: ''
+                },
+                notification: {
+                    show: false,
+                    type: 'success',
+                    message: ''
+                },
+
+                // Methods
+                async init() {
+                    await this.testConnection();
+                    this.loadStats();
+                },
+
+                async testConnection() {
+                    try {
+                        const response = await fetch('http://localhost:5000/api/health');
+                        const data = await response.json();
+                        
+                        this.apiStatus = {
+                            connected: response.ok,
+                            message: data.message || 'API is running'
+                        };
+                        
+                        this.showNotification('success', 'API connection successful');
+                    } catch (error) {
+                        this.apiStatus = {
+                            connected: false,
+                            message: 'API connection failed'
+                        };
+                        this.showNotification('error', 'Failed to connect to API');
+                    }
+                },
+
+                async scrapeInstagram() {
+                    if (this.isScraping) return;
+                    
+                    this.isScraping = true;
+                    try {
+                        const hashtags = this.config.hashtags.split(',').map(tag => tag.trim());
+                        const response = await fetch('http://localhost:5000/api/scrape/instagram', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ hashtags })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.leads = [...this.leads, ...data.leads];
+                            this.stats.instagramLeads += data.leads.length;
+                            this.stats.totalLeads += data.leads.length;
+                            this.showNotification('success', `Found ${data.leads.length} leads from Instagram`);
+                        } else {
+                            this.showNotification('error', data.error || 'Instagram scraping failed');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Instagram scraping failed: ' + error.message);
+                    } finally {
+                        this.isScraping = false;
+                    }
+                },
+
+                async scrapeFacebook() {
+                    if (this.isScraping) return;
+                    
+                    this.isScraping = true;
+                    try {
+                        const groups = this.config.facebookGroups.split(',').map(group => group.trim());
+                        const response = await fetch('http://localhost:5000/api/scrape/facebook', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ groups })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.leads = [...this.leads, ...data.leads];
+                            this.stats.facebookLeads += data.leads.length;
+                            this.stats.totalLeads += data.leads.length;
+                            this.showNotification('success', `Found ${data.leads.length} leads from Facebook`);
+                        } else {
+                            this.showNotification('error', data.error || 'Facebook scraping failed');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Facebook scraping failed: ' + error.message);
+                    } finally {
+                        this.isScraping = false;
+                    }
+                },
+
+                async scrapeYouTube() {
+                    if (this.isScraping) return;
+                    
+                    this.isScraping = true;
+                    try {
+                        const videoIds = this.config.youtubeVideos.split(',').map(id => id.trim()).filter(id => id);
+                        const response = await fetch('http://localhost:5000/api/scrape/youtube', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ video_ids: videoIds })
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.leads = [...this.leads, ...data.leads];
+                            this.stats.youtubeLeads += data.leads.length;
+                            this.stats.totalLeads += data.leads.length;
+                            this.showNotification('success', `Found ${data.leads.length} leads from YouTube`);
+                        } else {
+                            this.showNotification('error', data.error || 'YouTube scraping failed');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'YouTube scraping failed: ' + error.message);
+                    } finally {
+                        this.isScraping = false;
+                    }
+                },
+
+                async scrapeAll() {
+                    if (this.isScraping) return;
+                    
+                    this.isScraping = true;
+                    try {
+                        const response = await fetch('http://localhost:5000/api/scrape/all', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({})
+                        });
+
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.leads = [...this.leads, ...data.leads];
+                            this.stats.totalLeads += data.leads.length;
+                            this.showNotification('success', `Found ${data.leads.length} leads from all platforms`);
+                        } else {
+                            this.showNotification('error', data.error || 'Comprehensive scraping failed');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Comprehensive scraping failed: ' + error.message);
+                    } finally {
+                        this.isScraping = false;
+                    }
+                },
+
+                viewLead(lead) {
+                    this.selectedLead = lead;
+                },
+
+                analyzeLead(lead) {
+                    // TODO: Implement lead analysis
+                    this.showNotification('info', 'Lead analysis feature coming soon');
+                },
+
+                messageUser(lead) {
+                    if (lead.post_url) {
+                        // Open the post URL in a new tab
+                        window.open(lead.post_url, '_blank');
+                        this.showNotification('info', `Opening ${lead.source} post to message user`);
+                    } else {
+                        this.showNotification('error', 'Post URL not available');
+                    }
+                },
+
+                async startAutoScanning() {
+                    try {
+                        const hashtags = this.config.hashtags.split(',').map(tag => tag.trim());
+                        const facebookGroups = this.config.facebookGroups.split(',').map(group => group.trim());
+                        const youtubeVideos = this.config.youtubeVideos.split(',').map(video => video.trim()).filter(video => video);
+                        
+                        const response = await fetch('http://localhost:5000/api/scheduler/start', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                hashtags: hashtags,
+                                facebook_groups: facebookGroups,
+                                youtube_videos: youtubeVideos
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.autoScanning.isRunning = true;
+                            this.autoScanning.interval = data.status.scan_interval;
+                            this.autoScanning.nextScan = data.status.next_scan ? 
+                                new Date(data.status.next_scan).toLocaleString() : 'Starting...';
+                            
+                            this.showNotification('success', `🔄 Automatic scanning started every ${data.status.scan_interval} minutes!`);
+                        } else {
+                            this.showNotification('error', data.error || 'Failed to start auto scanning');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Failed to start auto scanning: ' + error.message);
+                    }
+                },
+
+                async stopAutoScanning() {
+                    try {
+                        const response = await fetch('http://localhost:5000/api/scheduler/stop', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.autoScanning.isRunning = false;
+                            this.autoScanning.nextScan = null;
+                            this.showNotification('success', '⏹️ Automatic scanning stopped!');
+                        } else {
+                            this.showNotification('error', data.error || 'Failed to stop auto scanning');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Failed to stop auto scanning: ' + error.message);
+                    }
+                },
+
+                async exportLeads() {
+                    if (this.leads.length === 0) {
+                        this.showNotification('error', 'No leads to export');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('http://localhost:5000/api/leads/export/excel', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ 
+                                leads: this.leads,
+                                filename: `leads_${new Date().toISOString().split('T')[0]}`
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Download the Excel file
+                            window.open(`http://localhost:5000${data.download_url}`, '_blank');
+                            this.showNotification('success', `Exported ${this.leads.length} leads to Excel`);
+                        } else {
+                            this.showNotification('error', data.error || 'Export failed');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Export failed: ' + error.message);
+                    }
+                },
+
+                sendToCRM() {
+                    // TODO: Implement CRM integration
+                    this.showNotification('info', 'CRM integration coming soon');
+                },
+
+                loadStats() {
+                    // Load stats from localStorage
+                    const savedStats = localStorage.getItem('leadGeneratorStats');
+                    if (savedStats) {
+                        this.stats = JSON.parse(savedStats);
+                    }
+                },
+
+                saveStats() {
+                    localStorage.setItem('leadGeneratorStats', JSON.stringify(this.stats));
+                },
+
+                showNotification(type, message) {
+                    this.notification = {
+                        show: true,
+                        type: type,
+                        message: message
+                    };
+                    
+                    setTimeout(() => {
+                        this.notification.show = false;
+                    }, 5000);
+                },
+
+                getSourceColor(source) {
+                    const colors = {
+                        'INSTAGRAM': 'bg-purple-100 text-purple-800',
+                        'FACEBOOK': 'bg-blue-100 text-blue-800',
+                        'YOUTUBE': 'bg-red-100 text-red-800',
+                        'UNKNOWN': 'bg-gray-100 text-gray-800'
+                    };
+                    return colors[source] || colors['UNKNOWN'];
+                },
+
+                getSourceIcon(source) {
+                    const icons = {
+                        'INSTAGRAM': 'fab fa-instagram',
+                        'FACEBOOK': 'fab fa-facebook',
+                        'YOUTUBE': 'fab fa-youtube',
+                        'UNKNOWN': 'fas fa-question'
+                    };
+                    return icons[source] || icons['UNKNOWN'];
+                },
+
+                getScoreColor(score) {
+                    if (score >= 8) return 'bg-green-500';
+                    if (score >= 6) return 'bg-yellow-500';
+                    return 'bg-red-500';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
