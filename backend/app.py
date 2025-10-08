@@ -32,7 +32,7 @@ from services.gemini_service import GeminiService
 from services.instagram_service import InstagramService
 from services.facebook_service import FacebookService
 from services.youtube_service import YouTubeService
-from utils.excel_service import ExcelService
+from utils.simple_excel_service import SimpleExcelService as ExcelService
 from services.scheduler_service import scheduler_service
 
 # Initialize services
