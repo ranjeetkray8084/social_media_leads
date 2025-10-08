@@ -29,7 +29,7 @@ CORS(app)
 
 # Import services
 from services.gemini_service import GeminiService
-from services.instagram_service import InstagramService
+from services.instagram_service_fixed import InstagramService
 from services.facebook_service import FacebookService
 from services.youtube_service import YouTubeService
 from utils.simple_excel_service import SimpleExcelService as ExcelService
